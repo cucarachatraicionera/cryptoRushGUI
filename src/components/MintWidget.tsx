@@ -4,11 +4,11 @@ import { Card } from "@/components/ui/card";
 import { Minus, Plus } from "lucide-react";
 import { usePhantomWallet } from "@/hooks/usePhantomWallet";
 
-// === CONFIGURA ESTO ===
+// ======== CONFIGURA ESTO ========
 const WALLET_B = "5msxv9UseB1hZUxx5XYAy2SFy3SyorKsT7MRAPj7Tezy";  // B recibe el SOL
 const PRICE_SOL = 0.01;                       // precio en SOL por unidad (devnet)
-const WEBHOOK_URL = "";                       // opcional: URL de Apps Script
-// ======================
+const WEBHOOK_URL = "";                       // opcional: URL de Google Apps Script
+// =================================
 
 async function sendWebhook(payload: any) {
   if (!WEBHOOK_URL) return;
@@ -22,15 +22,16 @@ async function sendWebhook(payload: any) {
 const MintWidget: React.FC = () => {
   const [isPresale, setIsPresale] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const [status, setStatus] = useState<string>("");     // mensajes
-  const [txid, setTxid] = useState<string | null>(null); // último txid
+  const [status, setStatus] = useState<string>("");
+  const [txid, setTxid] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Tu UI muestra USD; eso no afecta al cobro en SOL que hacemos abajo.
+  // Tu UI en USD (no afecta al cobro en SOL)
   const priceUSD = isPresale ? 500 : 650;
   const totalUSD = priceUSD * quantity;
 
+  // Total a cobrar en SOL (devnet)
   const totalSOL = useMemo(() => {
-    // Si quieres que el precio en SOL cambie según presale/launch, ajusta aquí.
     return Math.max(1, quantity) * PRICE_SOL;
   }, [quantity]);
 
@@ -47,16 +48,12 @@ const MintWidget: React.FC = () => {
 
   const onMint = async () => {
     try {
-      if (!connected) {
-        setStatus("Conecta tu wallet primero.");
-        return;
-      }
-      // Pago al wallet B por la cantidad seleccionada (en SOL)
+      if (!connected) { setStatus("Conecta tu wallet primero."); return; }
+      setLoading(true);
       const sig = await paySOL(WALLET_B, totalSOL);
       setTxid(sig);
       setStatus(`Transacción de NFT exitosa. TXID: ${sig}`);
 
-      // Envía registro a Sheets (pubkey + monto + cantidad + txid)
       await sendWebhook({
         pubkey: pubkey?.toString(),
         monto: totalSOL,
@@ -67,6 +64,8 @@ const MintWidget: React.FC = () => {
       // Aquí haces tu "magia": transfieres manualmente el NFT desde A al comprador.
     } catch (e: any) {
       setStatus(`Error en la transacción: ${e?.message || e}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -132,10 +131,10 @@ const MintWidget: React.FC = () => {
       <div className="space-y-3">
         <Button
           onClick={onMint}
-          disabled={!connected}
+          disabled={!connected || loading}
           className="w-full bg-crypto-neon text-crypto-bg hover:bg-crypto-neon/90 rounded-2xl py-3 font-semibold shadow-[0_0_20px_rgba(34,247,174,0.3)] hover:shadow-[0_0_30px_rgba(34,247,174,0.5)] transition-all"
         >
-          Mint NFT
+          {loading ? "Procesando..." : "Mint NFT"}
         </Button>
 
         <Button
@@ -151,7 +150,6 @@ const MintWidget: React.FC = () => {
         No performance promises. Market risk.
       </p>
 
-      {/* Estado y link al explorer */}
       {status && (
         <div className="mt-3 text-xs text-crypto-muted break-words">
           {status}{" "}
