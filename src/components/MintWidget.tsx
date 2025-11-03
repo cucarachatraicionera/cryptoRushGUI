@@ -7,16 +7,29 @@ import { usePhantomWallet } from "@/hooks/usePhantomWallet";
 // ======== CONFIGURA ESTO ========
 const WALLET_B = "5msxv9UseB1hZUxx5XYAy2SFy3SyorKsT7MRAPj7Tezy";  // B recibe el SOL
 const PRICE_SOL = 0.01;                       // precio en SOL por unidad (devnet)
-const WEBHOOK_URL = "";                       // opcional: URL de Google Apps Script
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyngEtZxgMJMnn4Xp2g4E5lrNHhuF87tBXPofv31eDoRGtN7HJAy4nrF6ajnBf_cYvF/exec";                       // opcional: URL de Google Apps Script
 // =================================
 
+// Usa SIEMPRE esta versión (FormData) en tu frontend
 async function sendWebhook(payload: any) {
   if (!WEBHOOK_URL) return;
+
+  // ID único para rastrear la fila en Sheets
+  if (!payload.request_id) {
+    payload.request_id = (crypto as any)?.randomUUID?.() || String(Date.now());
+  }
+
+  const fd = new FormData();
+  fd.append("payload", JSON.stringify(payload));
+
+  // no-cors para evitar CORS/preflight
   await fetch(WEBHOOK_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: fd,
+    mode: "no-cors",
   });
+
+  console.log("Webhook enviado (no-cors). request_id:", payload.request_id, payload);
 }
 
 const MintWidget: React.FC = () => {
@@ -59,7 +72,8 @@ const MintWidget: React.FC = () => {
         monto: totalSOL,
         qty: quantity,
         txid: sig,
-      });
+    });
+
 
       // Aquí haces tu "magia": transfieres manualmente el NFT desde A al comprador.
     } catch (e: any) {
