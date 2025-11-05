@@ -1,5 +1,5 @@
-// src/hooks/usePhantomWallet.ts
-import { useCallback, useMemo, useRef, useState } from "react";
+// src/hooks/usePhantomWallet.ts (añade el useEffect de auto-detección)
+import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { connection } from "@/lib/solana";
 
@@ -8,10 +8,13 @@ type Provider = {
   connect: () => Promise<{ publicKey: PublicKey }>;
   signTransaction: (tx: Transaction) => Promise<Transaction>;
   signAndSendTransaction?: (tx: Transaction) => Promise<{ signature: string }>;
+  // eventos opcionales
+  on?: (event: "connect" | "disconnect", handler: (...args: any[]) => void) => void;
+  publicKey?: PublicKey | null;
 };
 
 function getProvider(): Provider | null {
-  // @ts-expect-error phantom is injected by the extension
+  // @ts-expect-error window.phantom injected
   const p = window?.phantom?.solana;
   return p?.isPhantom ? (p as Provider) : null;
 }
@@ -21,6 +24,16 @@ export function usePhantomWallet() {
   const [pubkey, setPubkey] = useState<PublicKey | null>(null);
   const connected = useMemo(() => !!pubkey, [pubkey]);
   const inFlight = useRef(false);
+
+  // ⬇️ auto-detecta conexión existente y escucha eventos
+  useEffect(() => {
+    const prov = getProvider();
+    if (!prov) return;
+    setProvider(prov);
+    if (prov.publicKey) setPubkey(prov.publicKey);
+    prov.on?.("connect", (pk: PublicKey) => setPubkey(pk));
+    prov.on?.("disconnect", () => setPubkey(null));
+  }, []);
 
   const connect = useCallback(async () => {
     const prov = getProvider();
@@ -46,42 +59,19 @@ export function usePhantomWallet() {
             lamports: Math.round(amountSol * LAMPORTS_PER_SOL),
           })
         );
-
-        // Blockhash fresco en cada intento
         tx.feePayer = pubkey;
         const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("finalized");
         tx.recentBlockhash = blockhash;
 
-        // Preferir signAndSendTransaction (evita doble envío)
         if (provider.signAndSendTransaction) {
           const { signature } = await provider.signAndSendTransaction(tx);
           await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, "confirmed");
           return signature;
         }
-
-        // Fallback: firmar y luego enviar manualmente
         const signed = await provider.signTransaction(tx);
         const signature = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
         await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, "confirmed");
         return signature;
-      } catch (e: any) {
-        // Si el nodo dice "already processed", intenta tratarlo como éxito
-        const msg = (e?.message || "").toLowerCase();
-        const already = msg.includes("already been processed") || msg.includes("already processed");
-        if (already && e?.signature) {
-          const status = await connection.getSignatureStatus(e.signature);
-          if (status?.value?.confirmationStatus) return e.signature;
-        }
-        // Logs (si la lib los expone)
-        // @ts-ignore
-        if (typeof e?.getLogs === "function") {
-          try {
-            // @ts-ignore
-            const logs = await e.getLogs(connection);
-            console.warn("TX logs:", logs);
-          } catch {}
-        }
-        throw e;
       } finally {
         inFlight.current = false;
       }

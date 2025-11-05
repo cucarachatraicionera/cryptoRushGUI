@@ -1,8 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { usePhantomWallet } from "@/hooks/usePhantomWallet";
+
+const short = (k?: string | null) => (k ? `${k.slice(0, 4)}...${k.slice(-4)}` : "");
 
 const Header: React.FC = () => {
   const [open, setOpen] = React.useState(false);
+  const { connect, connected, pubkey } = usePhantomWallet();
 
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -30,7 +34,6 @@ const Header: React.FC = () => {
                 <path d="M3 6h18M3 12h18M3 18h18" />
               </svg>
             </button>
-            {/* gutter para centrar el nav en desktop */}
             <div className="hidden md:block w-24 md:w-28" />
           </div>
 
@@ -48,13 +51,17 @@ const Header: React.FC = () => {
 
           {/* DER: botón (forzado a col 3 en mobile) */}
           <div className="col-start-3 justify-self-end z-10">
-            <Button className="bg-crypto-neon/10 text-crypto-neon border border-crypto-neon hover:bg-crypto-neon hover:text-crypto-bg rounded-2xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(34,247,174,0.3)] text-sm md:text-base">
-              Connect Wallet
+            <Button
+              onClick={async () => { try { await connect(); } catch {} }}
+              className="bg-crypto-neon/10 text-crypto-neon border border-crypto-neon hover:bg-crypto-neon hover:text-crypto-bg rounded-2xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(34,247,174,0.3)] text-sm md:text-base"
+              variant={connected ? "default" : "outline"}
+            >
+              {connected ? `Connected: ${short(pubkey?.toString())}` : "Connect Wallet"}
             </Button>
           </div>
         </div>
 
-        {/* LOGO (mobile) centrado en la barra */}
+        {/* LOGO (mobile) */}
         <a
           href="/"
           aria-label="Crypto Rush — Home"
@@ -63,7 +70,7 @@ const Header: React.FC = () => {
           <img src="/crypto-rush-logo.svg" alt="Crypto Rush" className="w-full h-auto select-none drop-shadow-[0_0_18px_rgba(34,247,174,0.35)]" draggable={false} />
         </a>
 
-        {/* LOGO (desktop) a la izquierda “colgando” 20% */}
+        {/* LOGO (desktop) */}
         <a
           href="/"
           aria-label="Crypto Rush — Home"
@@ -73,7 +80,7 @@ const Header: React.FC = () => {
         </a>
       </div>
 
-      {/* MENÚ MOBILE desplegable */}
+      {/* MENÚ MOBILE */}
       <div
         id="mobile-menu"
         className={`md:hidden fixed inset-x-0 top-16 bg-crypto-bg/95 backdrop-blur border-b border-crypto-surface transition-all duration-200 ${
