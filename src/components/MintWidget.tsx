@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Minus, Plus } from "lucide-react";
@@ -169,6 +169,23 @@ const MintWidget: React.FC = () => {
     setPaymentCurrency(currency);
   };
 
+  // Función para cerrar el error
+  const handleCloseError = () => {
+    setStatus("idle");
+    setErrorMessage("");
+  };
+
+  // Auto-cerrar el error después de 2 segundos
+  useEffect(() => {
+    if (status === "error") {
+      const timer = setTimeout(() => {
+        setStatus("idle");
+        setErrorMessage("");
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [status]);
+
   return (
     <div className="relative">
       {/* Partículas futuristas de fondo */}
@@ -180,7 +197,7 @@ const MintWidget: React.FC = () => {
         {/* Estados de animación */}
         {status === "loading" && <LoadingMint />}
         {status === "success" && <SuccessMint txid={txid || undefined} />}
-        {status === "error" && <ErrorMint message={errorMessage} />}
+        {status === "error" && <ErrorMint message={errorMessage} onClose={handleCloseError} />}
 
         {/* UI principal (oculta durante loading/success/error) */}
         {status === "idle" && (

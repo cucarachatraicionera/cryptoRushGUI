@@ -50,7 +50,7 @@ export default function LoadingMint() {
     return [...outerSparks, ...innerSparks, ...randomSparks];
   }, []);
 
-  // Chispas tipo estrella que salen del círculo hacia afuera
+  // Chispas tipo estrella que salen del círculo hacia afuera (pequeñas - las originales)
   const starSparks = useMemo(() => {
     return Array.from({ length: 20 }).map((_, i) => {
       const angle = Math.random() * 360;
@@ -69,7 +69,31 @@ export default function LoadingMint() {
         endY,
         delay: Math.random() * 0.4,
         duration: 0.4 + Math.random() * 0.3,
-        size: 2 + Math.random() * 3,
+        size: 2 + Math.random() * 3, // Pequeñas
+      };
+    });
+  }, []);
+
+  // Chispas tipo estrella GRANDES que salen del círculo hacia afuera
+  const bigStarSparks = useMemo(() => {
+    return Array.from({ length: 15 }).map((_, i) => {
+      const angle = Math.random() * 360;
+      const startRadius = 35 + Math.random() * 15;
+      const endRadius = 110 + Math.random() * 50;
+      const startX = Math.cos((angle * Math.PI) / 180) * startRadius;
+      const startY = Math.sin((angle * Math.PI) / 180) * startRadius;
+      const endX = Math.cos((angle * Math.PI) / 180) * endRadius;
+      const endY = Math.sin((angle * Math.PI) / 180) * endRadius;
+      
+      return {
+        angle,
+        startX,
+        startY,
+        endX,
+        endY,
+        delay: Math.random() * 0.5,
+        duration: 0.5 + Math.random() * 0.4,
+        size: 6 + Math.random() * 5, // Grandes: 6-11px
       };
     });
   }, []);
@@ -104,8 +128,52 @@ export default function LoadingMint() {
           />
         ))}
         
-        {/* Chispas tipo estrella que salen del círculo hacia afuera */}
+        {/* Chispas tipo estrella pequeñas que salen del círculo hacia afuera */}
         {starSparks.map((star, i) => (
+          <div
+            key={`star-${i}`}
+            className="absolute animate-star-burst"
+            style={{
+              left: "50%",
+              top: "50%",
+              width: `${star.size}px`,
+              height: `${star.size}px`,
+              transform: `translate(calc(-50% + ${star.startX}px), calc(-50% + ${star.startY}px))`,
+              animationDelay: `${star.delay}s`,
+              animationDuration: `${star.duration}s`,
+              '--start-x': `${star.startX}px`,
+              '--start-y': `${star.startY}px`,
+              '--end-x': `${star.endX}px`,
+              '--end-y': `${star.endY}px`,
+            } as React.CSSProperties}
+          >
+            {/* Estrella usando múltiples divs rotados */}
+            <div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: `radial-gradient(circle, #22f7ae 40%, transparent 70%)`,
+                boxShadow: `0 0 ${star.size * 2}px rgba(34, 247, 174, 1), 0 0 ${star.size * 4}px rgba(45, 212, 191, 0.8)`,
+              }}
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(45deg, transparent 30%, #2dd4bf 50%, transparent 70%)`,
+                transform: 'rotate(45deg)',
+              }}
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(90deg, transparent 30%, #0ea5e9 50%, transparent 70%)`,
+                transform: 'rotate(90deg)',
+              }}
+            />
+          </div>
+        ))}
+        
+        {/* Chispas tipo estrella GRANDES que salen del círculo hacia afuera */}
+        {bigStarSparks.map((star, i) => (
           <div
             key={`star-${i}`}
             className="absolute animate-star-burst"
