@@ -10,11 +10,13 @@ import ErrorMint from "./animations/ErrorMint";
 
 // ======== CONFIGURA ESTO ========
 const WALLET_B = "5msxv9UseB1hZUxx5XYAy2SFy3SyorKsT7MRAPj7Tezy";  // B recibe el SOL
-const PRICE_SOL = 0.01;                       // precio en SOL por unidad (devnet)
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyngEtZxgMJMnn4Xp2g4E5lrNHhuF87tBXPofv31eDoRGtN7HJAy4nrF6ajnBf_cYvF/exec";                       // opcional: URL de Google Apps Script
+const PRICE_USD = 300;                       // precio fijo en USD
+const SOL_PRICE_USD = 150;                   // precio aproximado de SOL en USD (ajusta según necesites)
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyngEtZxgMJMnn4Xp2g4E5lrNHhuF87tBXPofv31eDoRGtN7HJAy4nrF6ajnBf_cYvF/exec";
 // =================================
 
 type MintStatus = "idle" | "loading" | "success" | "error";
+type PaymentCurrency = "SOL" | "USDT";
 
 // Usa SIEMPRE esta versión (FormData) en tu frontend
 async function sendWebhook(payload: any) {
@@ -58,20 +60,26 @@ const fireFX = (x?: number, y?: number) => {
 };
 
 const MintWidget: React.FC = () => {
-  const [isPresale, setIsPresale] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [status, setStatus] = useState<MintStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [txid, setTxid] = useState<string | null>(null);
+  const [paymentCurrency, setPaymentCurrency] = useState<PaymentCurrency>("SOL");
 
-  // Tu UI en USD (no afecta al cobro en SOL)
-  const priceUSD = isPresale ? 500 : 650;
-  const totalUSD = priceUSD * quantity;
-
-  // Total a cobrar en SOL (devnet)
-  const totalSOL = useMemo(() => {
-    return Math.max(1, quantity) * PRICE_SOL;
+  // Total en USD
+  const totalUSD = useMemo(() => {
+    return PRICE_USD * quantity;
   }, [quantity]);
+
+  // Total a cobrar en SOL
+  const totalSOL = useMemo(() => {
+    return (totalUSD / SOL_PRICE_USD);
+  }, [totalUSD]);
+
+  // Total a cobrar en USDT (mismo que USD)
+  const totalUSDT = useMemo(() => {
+    return totalUSD;
+  }, [totalUSD]);
 
   const { connect, paySOL, pubkey, connected } = usePhantomWallet();
 
@@ -111,21 +119,33 @@ const MintWidget: React.FC = () => {
       // Pequeño delay para mostrar la animación de carga
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const sig = await paySOL(WALLET_B, totalSOL);
-      setTxid(sig);
-      setStatus("success");
+      // Por ahora solo implementamos pago en SOL
+      // Para USDT necesitarías implementar transferencia de token SPL
+      if (paymentCurrency === "SOL") {
+        const sig = await paySOL(WALLET_B, totalSOL);
+        setTxid(sig);
+        setStatus("success");
 
-      // Explosión de éxito
-      fireFX();
-      setTimeout(() => fireFX(), 200);
-      setTimeout(() => fireFX(), 400);
+        // Explosión de éxito
+        fireFX();
+        setTimeout(() => fireFX(), 200);
+        setTimeout(() => fireFX(), 400);
 
-      await sendWebhook({
-        pubkey: pubkey?.toString(),
-        monto: totalSOL,
-        qty: quantity,
-        txid: sig,
-      });
+        await sendWebhook({
+          pubkey: pubkey?.toString(),
+          currency: "SOL",
+          monto: totalSOL,
+          montoUSD: totalUSD,
+          qty: quantity,
+          txid: sig,
+        });
+      } else {
+        // TODO: Implementar pago en USDT (token SPL)
+        setStatus("error");
+        setErrorMessage("Pago en USDT próximamente disponible.");
+        fireFX();
+        return;
+      }
 
       // Reset después de 5 segundos
       setTimeout(() => {
@@ -144,9 +164,9 @@ const MintWidget: React.FC = () => {
     setQuantity(prev => Math.max(1, Math.min(10, prev + delta)));
   };
 
-  const handlePresaleToggle = (presale: boolean, e?: React.MouseEvent) => {
+  const handleCurrencyChange = (currency: PaymentCurrency, e?: React.MouseEvent) => {
     if (e) fireFX(e.clientX, e.clientY);
-    setIsPresale(presale);
+    setPaymentCurrency(currency);
   };
 
   return (
@@ -165,26 +185,27 @@ const MintWidget: React.FC = () => {
         {/* UI principal (oculta durante loading/success/error) */}
         {status === "idle" && (
           <>
+            {/* Selector de moneda SOL/USDT */}
             <div className="flex bg-crypto-bg/50 rounded-xl p-1 mb-6">
               <button
-                onClick={(e) => handlePresaleToggle(true, e)}
+                onClick={(e) => handleCurrencyChange("SOL", e)}
                 className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                  isPresale
+                  paymentCurrency === "SOL"
                     ? "bg-crypto-neon text-crypto-bg shadow-[0_0_15px_rgba(34,247,174,0.3)]"
                     : "text-crypto-muted hover:text-white"
                 }`}
               >
-                Presale ${priceUSD}
+                SOL
               </button>
               <button
-                onClick={(e) => handlePresaleToggle(false, e)}
+                onClick={(e) => handleCurrencyChange("USDT", e)}
                 className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                  !isPresale
+                  paymentCurrency === "USDT"
                     ? "bg-crypto-neon text-crypto-bg shadow-[0_0_15px_rgba(34,247,174,0.3)]"
                     : "text-crypto-muted hover:text-white"
                 }`}
               >
-                Launch ${priceUSD}
+                USDT
               </button>
             </div>
 
@@ -212,7 +233,12 @@ const MintWidget: React.FC = () => {
               <p className="text-sm text-crypto-muted mt-2">
                 50% of profit is distributed to holders. The other 50% fuels the project.
               </p>
-              <p className="text-xs text-crypto-muted mt-1">Total a cobrar: {totalSOL} SOL (devnet)</p>
+              <p className="text-xs text-cyan-300 mt-2 font-medium">
+                {paymentCurrency === "SOL" 
+                  ? `Total: ${totalSOL.toFixed(2)} SOL`
+                  : `Total: ${totalUSDT.toFixed(1)} USDT`
+                }
+              </p>
               {pubkey && (
                 <p className="text-xs text-crypto-muted mt-1 break-all">
                   Comprador: {pubkey.toString()}
@@ -229,13 +255,7 @@ const MintWidget: React.FC = () => {
                 Mint NFT
               </Button>
 
-              <Button
-                onClick={(e) => onConnect(e)}
-                variant="outline"
-                className="w-full border-cyan-300/40 text-cyan-300 hover:bg-cyan-300/10 rounded-2xl py-3 backdrop-blur-sm"
-              >
-                {connected ? "Wallet Conectada" : "Connect Wallet"}
-              </Button>
+
             </div>
 
             <p className="text-xs text-crypto-muted text-center mt-4">
@@ -249,7 +269,7 @@ const MintWidget: React.FC = () => {
           <div className="mt-3 text-xs text-crypto-muted break-words text-center">
             <a
               className="text-cyan-300 underline hover:text-cyan-200"
-              href={`https://explorer.solana.com/tx/${txid}?cluster=devnet`}
+              href={`https://solscan.io/tx/${txid}?cluster=devnet`}
               target="_blank"
               rel="noreferrer"
             >

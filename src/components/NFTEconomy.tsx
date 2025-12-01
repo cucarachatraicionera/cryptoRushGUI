@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 
 const NFTEconomy: React.FC = () => {
   const stats = [
-    { label: 'Presale', value: '$500', color: 'crypto-neon' },
+    { label: 'Presale', value: '$300', color: 'crypto-neon' },
     { label: 'Launch', value: '$650', color: 'crypto-cyan' },
     { label: 'Sharing', value: '50% Holders / 50% Project', color: 'crypto-neon' }
   ];

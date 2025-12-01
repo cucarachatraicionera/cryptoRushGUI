@@ -53,16 +53,9 @@ const Hero: React.FC = () => {
                 onClick={scrollToMint}
                 className="bg-crypto-neon text-crypto-bg hover:bg-crypto-neon/90 rounded-2xl px-8 py-4 text-lg font-semibold shadow-[0_0_30px_rgba(34,247,174,0.3)] hover:shadow-[0_0_40px_rgba(34,247,174,0.5)] transition-all"
               >
-                Buy NFT in presale – $500
-              </Button>
-              <Button 
-                variant="outline" 
-                className="border-crypto-cyan text-crypto-cyan hover:bg-crypto-cyan/10 rounded-2xl px-8 py-4 text-lg"
-              >
                 Read Whitepaper
               </Button>
             </div>
-
             <p className="text-crypto-muted">
               Crypto Rush by Zionix AI bridges innovation in artificial intelligence with a fair and transparent model: 50% of total profit is distributed among access NFT holders, while the other 50% fuels project growth.
             </p>
