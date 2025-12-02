@@ -78,7 +78,7 @@ export default function SuccessMint({ txid }: { txid?: string }) {
         <div className="absolute inset-0 rounded-full border-2 border-cyan-300/20 animate-ping" style={{ animationDuration: "2s", animationDelay: "0.5s" }}></div>
       </div>
       
-      <p className="mt-6 text-lg font-semibold text-cyan-300 animate-pulse z-10 relative">Mint exitoso 🎉</p>
+      <p className="mt-6 text-lg font-semibold text-cyan-300 animate-pulse z-10 relative">Mint successful 🎉</p>
       
       {txid && (
         <a
@@ -87,7 +87,7 @@ export default function SuccessMint({ txid }: { txid?: string }) {
           rel="noreferrer"
           className="mt-3 text-sm text-cyan-300/80 underline hover:text-cyan-300 transition-colors z-10 relative"
         >
-          Ver transacción en Explorer
+          View transaction on Explorer
         </a>
       )}
       

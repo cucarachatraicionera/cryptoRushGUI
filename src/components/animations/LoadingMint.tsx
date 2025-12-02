@@ -13,7 +13,7 @@ export default function LoadingMint() {
         x,
         y,
         delay: i * 0.05,
-        size: 2 + Math.random() * 3,
+        size: 4 + Math.random() * 5, // Más grandes: 4-9px
         duration: 0.3 + Math.random() * 0.2, // Más rápido
       };
     });
@@ -27,7 +27,7 @@ export default function LoadingMint() {
         x,
         y,
         delay: i * 0.06,
-        size: 1.5 + Math.random() * 2,
+        size: 3 + Math.random() * 4, // Más grandes: 3-7px
         duration: 0.25 + Math.random() * 0.15,
       };
     });
@@ -42,7 +42,7 @@ export default function LoadingMint() {
         x,
         y,
         delay: Math.random() * 0.3,
-        size: 1 + Math.random() * 2.5,
+        size: 3 + Math.random() * 4, // Más grandes: 3-7px
         duration: 0.2 + Math.random() * 0.2,
       };
     });
@@ -69,7 +69,7 @@ export default function LoadingMint() {
         endY,
         delay: Math.random() * 0.4,
         duration: 0.4 + Math.random() * 0.3,
-        size: 2 + Math.random() * 3, // Pequeñas
+        size: 8 + Math.random() * 8, // MUCHO más grandes: 8-16px
       };
     });
   }, []);
@@ -93,7 +93,7 @@ export default function LoadingMint() {
         endY,
         delay: Math.random() * 0.5,
         duration: 0.5 + Math.random() * 0.4,
-        size: 6 + Math.random() * 5, // Grandes: 6-11px
+        size: 12 + Math.random() * 10, // MUCHO más grandes: 12-22px
       };
     });
   }, []);
@@ -216,7 +216,7 @@ export default function LoadingMint() {
           </div>
         ))}
       </div>
-      <p className="mt-6 text-sm text-cyan-300 font-medium animate-pulse">Procesando mint...</p>
+      <p className="mt-6 text-sm text-cyan-300 font-medium animate-pulse">Processing mint...</p>
       
       <style>{`
         @keyframes spark-frenetic {

@@ -94,7 +94,7 @@ const MintWidget: React.FC = () => {
       fireFX();
     } catch (err: any) {
       setStatus("error");
-      setErrorMessage("Conexión cancelada o fallida.");
+      setErrorMessage("Connection cancelled or failed.");
       fireFX();
     }
   };
@@ -103,7 +103,7 @@ const MintWidget: React.FC = () => {
     try {
       if (!connected) {
         setStatus("error");
-        setErrorMessage("Conecta tu wallet primero.");
+        setErrorMessage("Connect your wallet first.");
         if (e) fireFX(e.clientX, e.clientY);
         return;
       }
@@ -142,7 +142,7 @@ const MintWidget: React.FC = () => {
       } else {
         // TODO: Implementar pago en USDT (token SPL)
         setStatus("error");
-        setErrorMessage("Pago en USDT próximamente disponible.");
+        setErrorMessage("USDT payment coming soon.");
         fireFX();
         return;
       }
@@ -154,7 +154,7 @@ const MintWidget: React.FC = () => {
       }, 5000);
     } catch (e: any) {
       setStatus("error");
-      setErrorMessage(e?.message || "Error en la transacción");
+      setErrorMessage(e?.message || "Transaction error");
       fireFX();
     }
   };
@@ -258,7 +258,7 @@ const MintWidget: React.FC = () => {
               </p>
               {pubkey && (
                 <p className="text-xs text-crypto-muted mt-1 break-all">
-                  Comprador: {pubkey.toString()}
+                  Buyer: {pubkey.toString()}
                 </p>
               )}
             </div>
@@ -290,7 +290,7 @@ const MintWidget: React.FC = () => {
               target="_blank"
               rel="noreferrer"
             >
-              Ver transacción en Explorer
+              View transaction on Explorer
             </a>
           </div>
         )}

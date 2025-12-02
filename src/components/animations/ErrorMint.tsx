@@ -9,7 +9,7 @@ export default function ErrorMint({ message, onClose }: { message?: string; onCl
         <button
           onClick={onClose}
           className="absolute top-0 right-0 w-8 h-8 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 hover:bg-red-500/30 hover:border-red-500/60 transition-colors z-20"
-          aria-label="Cerrar error"
+          aria-label="Close error"
         >
           <X size={16} />
         </button>
@@ -26,7 +26,7 @@ export default function ErrorMint({ message, onClose }: { message?: string; onCl
         <div className="absolute inset-0 rounded-full border-2 border-red-500/20 animate-ping" style={{ animationDuration: "2s", animationDelay: "0.5s" }}></div>
       </div>
       
-      <p className="mt-6 text-lg font-semibold text-red-400">Mint falló</p>
+      <p className="mt-6 text-lg font-semibold text-red-400">Mint failed</p>
       {message && (
         <p className="mt-2 text-sm text-red-300/80 max-w-xs text-center">{message}</p>
       )}
