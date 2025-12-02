@@ -5,9 +5,28 @@ import { Minus, Plus } from "lucide-react";
 import { usePhantomWallet } from "@/hooks/usePhantomWallet";
 
 // ======== CONFIGURA ESTO ========
-const WALLET_B = "5msxv9UseB1hZUxx5XYAy2SFy3SyorKsT7MRAPj7Tezy";  // B recibe el SOL
-const PRICE_SOL = 0.01;                       // precio en SOL por unidad (devnet)
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyngEtZxgMJMnn4Xp2g4E5lrNHhuF87tBXPofv31eDoRGtN7HJAy4nrF6ajnBf_cYvF/exec";                       // opcional: URL de Google Apps Script
+
+// Wallet que recibe el SOL (tesorería en mainnet).
+// Puedes dejar esta o poner la de tu Phantom / tesorera.
+const WALLET_B = "5msxv9UseB1hZUxx5XYAy2SFy3SyorKsT7MRAPj7Tezy";
+
+// Precio objetivo en USD por NFT
+const PRICE_USD_PRESALE = 300;
+const PRICE_USD_LAUNCH = 300;
+
+// Conversión manual USD → SOL.
+// EJEMPLO: si 1 SOL ≈ 200 USD → USD_PER_SOL = 200.
+// Entonces PRICE_SOL = 300 / 200 = 1.5 SOL.
+// ACTUALIZA ESTE VALOR CUANDO CAMBIE EL PRECIO DEL SOL.
+const USD_PER_SOL = 200;
+
+// Precio en SOL calculado a partir de los 300 USD
+const PRICE_SOL = PRICE_USD_PRESALE / USD_PER_SOL;
+
+// URL de tu Google Apps Script (igual que antes)
+const WEBHOOK_URL =
+  "https://script.google.com/macros/s/AKfycbyngEtZxgMJMnn4Xp2g4E5lrNHhuF87tBXPofv31eDoRGtN7HJAy4nrF6ajnBf_cYvF/exec";
+
 // =================================
 
 // Usa SIEMPRE esta versión (FormData) en tu frontend
@@ -39,11 +58,11 @@ const MintWidget: React.FC = () => {
   const [txid, setTxid] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Tu UI en USD (no afecta al cobro en SOL)
-  const priceUSD = isPresale ? 500 : 650;
+  // UI en USD (para mostrar precio)
+  const priceUSD = isPresale ? PRICE_USD_PRESALE : PRICE_USD_LAUNCH;
   const totalUSD = priceUSD * quantity;
 
-  // Total a cobrar en SOL (devnet)
+  // Total a cobrar en SOL (en mainnet)
   const totalSOL = useMemo(() => {
     return Math.max(1, quantity) * PRICE_SOL;
   }, [quantity]);
@@ -61,7 +80,10 @@ const MintWidget: React.FC = () => {
 
   const onMint = async () => {
     try {
-      if (!connected) { setStatus("Conecta tu wallet primero."); return; }
+      if (!connected) {
+        setStatus("Conecta tu wallet primero.");
+        return;
+      }
       setLoading(true);
       const sig = await paySOL(WALLET_B, totalSOL);
       setTxid(sig);
@@ -72,10 +94,10 @@ const MintWidget: React.FC = () => {
         monto: totalSOL,
         qty: quantity,
         txid: sig,
-    });
+      });
 
-
-      // Aquí haces tu "magia": transfieres manualmente el NFT desde A al comprador.
+      // Aquí haces tu "magia": transfieres manualmente el NFT
+      // desde tu Candy Machine / billetera al comprador.
     } catch (e: any) {
       setStatus(`Error en la transacción: ${e?.message || e}`);
     } finally {
@@ -96,7 +118,7 @@ const MintWidget: React.FC = () => {
               : "text-crypto-muted hover:text-white"
           }`}
         >
-          Presale ${priceUSD}
+          Presale ${PRICE_USD_PRESALE}
         </button>
         <button
           onClick={() => setIsPresale(false)}
@@ -106,7 +128,7 @@ const MintWidget: React.FC = () => {
               : "text-crypto-muted hover:text-white"
           }`}
         >
-          Launch ${priceUSD}
+          Launch ${PRICE_USD_LAUNCH}
         </button>
       </div>
 
@@ -134,7 +156,9 @@ const MintWidget: React.FC = () => {
         <p className="text-sm text-crypto-muted mt-2">
           50% of profit is distributed to holders. The other 50% fuels the project.
         </p>
-        <p className="text-xs text-crypto-muted mt-1">Total a cobrar: {totalSOL} SOL (devnet)</p>
+        <p className="text-xs text-crypto-muted mt-1">
+          Total a cobrar: {totalSOL} SOL (mainnet)
+        </p>
         {pubkey && (
           <p className="text-xs text-crypto-muted mt-1 break-all">
             Comprador: {pubkey.toString()}
@@ -170,7 +194,7 @@ const MintWidget: React.FC = () => {
           {txid && (
             <a
               className="text-crypto-cyan underline"
-              href={`https://explorer.solana.com/tx/${txid}?cluster=devnet`}
+              href={`https://explorer.solana.com/tx/${txid}`}
               target="_blank"
               rel="noreferrer"
             >
