@@ -8,7 +8,7 @@ const HowItWorks: React.FC = () => {
     {
       icon: ShoppingCart,
       title: 'Buy your access NFT',
-      description: 'Purchase in presale ($500) or at launch ($650)',
+      description: 'Purchase in presale ($300) or at launch ($650)',
       color: 'crypto-neon'
     },
     {
