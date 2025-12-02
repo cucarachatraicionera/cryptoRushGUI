@@ -10,8 +10,8 @@ import ErrorMint from "./animations/ErrorMint";
 
 // ======== CONFIGURA ESTO ========
 const WALLET_B = "5msxv9UseB1hZUxx5XYAy2SFy3SyorKsT7MRAPj7Tezy";  // B recibe el SOL
-const PRICE_USD = 300;                       // precio fijo en USD
-const SOL_PRICE_USD = 150;                   // precio aproximado de SOL en USD (ajusta según necesites)
+const PRICE_USD = 1;                       // precio fijo en USD
+const SOL_PRICE_USD = 1;                   // precio aproximado de SOL en USD (ajusta según necesites)
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyngEtZxgMJMnn4Xp2g4E5lrNHhuF87tBXPofv31eDoRGtN7HJAy4nrF6ajnBf_cYvF/exec";
 // =================================
 
